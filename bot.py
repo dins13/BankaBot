@@ -3,12 +3,17 @@
 import asyncio
 import logging
 import os
+from pathlib import Path
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import MenuButtonWebApp, WebAppInfo
+from dotenv import load_dotenv
 
 from database import init_db
 from handlers import router
+
+# Загружаем переменные окружения из .env (файл не коммитится).
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # Токен от @BotFather задаётся ТОЛЬКО через переменную окружения BOT_TOKEN.
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()

@@ -17,6 +17,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -26,6 +27,9 @@ from pydantic import BaseModel, Field
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
+
+# Загружаем переменные окружения из .env (файл не коммитится).
+load_dotenv(BASE_DIR / ".env")
 
 from database import (  # noqa: E402
     add_operation,
