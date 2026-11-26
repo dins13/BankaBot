@@ -19,7 +19,7 @@ Telegram-бот для учёта финансов и Telegram Mini App с те�
 ## Структура
 
 ```
-bot.py                 запуск Telegram-бота (aiogram)
+bot.py                 запуск бота + встроенного веб-сервера Mini App
 handlers.py            команды бота, /app и кнопка Mini App
 services.py            парсинг, периоды, отчёты
 database.py            SQLite-слой (общий для бота и Mini App)
@@ -41,7 +41,21 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Локальный запуск Mini App
+## Запуск
+
+Одной командой поднимаются и бот, и веб-сервер Mini App (порт 8000 по умолчанию):
+
+```bash
+python bot.py
+```
+
+Веб-сервер стартует автоматически вместе с ботом. Отключить его можно
+переменной `WEBAPP_EMBED=0` (например, если фронтенд хостится отдельно),
+адрес и порт задаются через `WEBAPP_HOST` и `WEBAPP_PORT`.
+
+## Локальный запуск Mini App отдельно
+
+Для отладки только веб-части без бота:
 
 ```bash
 WEBAPP_DEV_MODE=1 uvicorn webapp.api:app --host 0.0.0.0 --port 8000
@@ -70,17 +84,17 @@ ngrok http 8000
 cloudflared tunnel --url http://localhost:8000
 ```
 
-Затем запустите API и бота с одним и тем же публичным адресом:
+Затем запустите бота с публичным адресом — веб-сервер поднимется сам:
 
 ```bash
 export WEBAPP_URL="https://<ваш-адрес>"
 export BOT_TOKEN="<токен-бота>"
 
-uvicorn webapp.api:app --host 0.0.0.0 --port 8000
 python bot.py
 ```
 
-- Бот при старте установит кнопку меню «Финансы».
+- При старте бот поднимает веб-сервер Mini App на `WEBAPP_HOST:WEBAPP_PORT`
+  (по умолчанию `0.0.0.0:8000`) и устанавливает кнопку меню «Финансы».
 - Команда `/app` пришлёт кнопку запуска Mini App.
 - Авторизация в API выполняется по подписи `initData`, токен бота должен
   совпадать у бота и Mini App (`BOT_TOKEN`).
@@ -92,6 +106,9 @@ python bot.py
 | `BOT_TOKEN`       | Токен Telegram-бота (бот и проверка initData)          |
 | `WEBAPP_URL`      | Публичный HTTPS-адрес Mini App для кнопок в боте       |
 | `WEBAPP_DEV_MODE` | `1` — разрешить доступ без Telegram (только локально)  |
+| `WEBAPP_EMBED`    | `1` (по умолчанию) — поднимать веб-сервер вместе с ботом |
+| `WEBAPP_HOST`     | Адрес встроенного веб-сервера (по умолчанию `0.0.0.0`) |
+| `WEBAPP_PORT`     | Порт встроенного веб-сервера (по умолчанию `8000`)     |
 | `HOST`, `PORT`    | Адрес и порт при запуске `python -m webapp.api`        |
 
 ## API
