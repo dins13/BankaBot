@@ -30,7 +30,7 @@ if not BOT_TOKEN:
     )
 
 # Публичный HTTPS-адрес Mini App для кнопки меню (необязательно).
-WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip()
+WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip().rstrip("/")
 
 # Встроенный веб-сервер Mini App (включён по умолчанию).
 WEBAPP_EMBED = os.getenv("WEBAPP_EMBED", "1").lower() in {"1", "true", "yes", "on"}
@@ -53,6 +53,14 @@ class _BackgroundServer(uvicorn.Server):
 async def _setup_menu_button() -> None:
     """Добавляет кнопку Mini App в меню бота, если задан WEBAPP_URL."""
     if not WEBAPP_URL:
+        logging.warning(
+            "WEBAPP_URL не задан — кнопка Mini App в меню не будет установлена"
+        )
+        return
+    if not WEBAPP_URL.startswith("https://"):
+        logging.warning(
+            "WEBAPP_URL должен начинаться с https://, сейчас: %s", WEBAPP_URL
+        )
         return
     try:
         await bot.set_chat_menu_button(

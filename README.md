@@ -75,13 +75,32 @@ curl -X POST http://localhost:8000/api/operations \
 
 ## Подключение к Telegram
 
-Telegram открывает Mini App только по HTTPS. Для локальной разработки
-подойдёт туннель, например ngrok или cloudflared:
+Telegram открывает Mini App только по публичному HTTPS-адресу.
+
+### Быстрый способ: бот + туннель одной командой
 
 ```bash
-ngrok http 8000
-# или
+./scripts/run_with_tunnel.sh
+```
+
+Скрипт поднимает SSH-туннель через `localhost.run`, получает публичный
+HTTPS-адрес и запускает `bot.py` с `WEBAPP_URL`, после чего кнопка меню
+«Финансы» обновляется автоматически.
+
+> У бесплатных quick-туннелей `localhost.run` домен может периодически
+> меняться. Если Mini App внезапно перестал открываться («no tunnel»),
+> остановите скрипт (Ctrl+C) и запустите его снова — бот подхватит новый
+> адрес. Для постоянного домена зарегистрируйте ключ на localhost.run или
+> используйте `ngrok`/именованный туннель `cloudflared`.
+
+### Вручную
+
+```bash
+# вариант 1: cloudflared
 cloudflared tunnel --url http://localhost:8000
+
+# вариант 2: ngrok
+ngrok http 8000
 ```
 
 Затем запустите бота с публичным адресом — веб-сервер поднимется сам:
@@ -92,6 +111,12 @@ export BOT_TOKEN="<токен-бота>"
 
 python bot.py
 ```
+
+> ⚠️ **Не используйте туннель VS Code (`*.devtunnels.ms`) для Mini App.**
+> Он отдаёт браузеру (и Telegram WebView) страницу-предупреждение
+> «You are about to connect to a developer tunnel… Continue». Telegram её
+> не проходит, и приложение выглядит как «no tunnel» / не открывается.
+> Используйте `cloudflared`, `ngrok` или `localhost.run`.
 
 - При старте бот поднимает веб-сервер Mini App на `WEBAPP_HOST:WEBAPP_PORT`
   (по умолчанию `0.0.0.0:8000`) и устанавливает кнопку меню «Финансы».

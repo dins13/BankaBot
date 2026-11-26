@@ -31,7 +31,7 @@ from services import (
 router = Router()
 
 # Публичный HTTPS-адрес Mini App (например, https://xxxx.ngrok-free.app).
-WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip()
+WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip().rstrip("/")
 
 HELP_TEXT = (
     "Я запоминаю твои доходы и расходы 💰\n\n"
@@ -129,7 +129,14 @@ async def cmd_app(message: Message):
     if not WEBAPP_URL:
         await message.answer(
             "Мини-приложение не настроено.\n"
-            "Укажите переменную окружения WEBAPP_URL с публичным HTTPS-адресом."
+            "Укажите переменную окружения WEBAPP_URL с публичным HTTPS-адресом "
+            "или запустите бота через ./scripts/run_with_tunnel.sh."
+        )
+        return
+    if not WEBAPP_URL.startswith("https://"):
+        await message.answer(
+            "WEBAPP_URL должен начинаться с https:// — Telegram не открывает "
+            "Mini App по HTTP-адресу."
         )
         return
     keyboard = InlineKeyboardMarkup(
