@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Логи
+*.log
+
+# Локальная БД с данными пользователей (не коммитить!)
+finance.db
+finance.db-journal
+finance.db-wal
+finance.db-shm
+*.sqlite
+*.sqlite3
+
+# ОС
+.DS_Store
