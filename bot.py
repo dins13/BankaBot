@@ -10,8 +10,12 @@ from aiogram.types import MenuButtonWebApp, WebAppInfo
 from database import init_db
 from handlers import router
 
-# Токен от @BotFather. Можно задать через переменную окружения BOT_TOKEN.
-BOT_TOKEN = os.getenv("BOT_TOKEN", "***REMOVED***")
+# Токен от @BotFather задаётся ТОЛЬКО через переменную окружения BOT_TOKEN.
+BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+if not BOT_TOKEN:
+    raise RuntimeError(
+        "Не задан BOT_TOKEN. Укажите токен бота в переменной окружения BOT_TOKEN."
+    )
 
 # Публичный HTTPS-адрес Mini App для кнопки меню (необязательно).
 WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip()

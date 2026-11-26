@@ -41,7 +41,7 @@ from database import (  # noqa: E402
 from services import CATEGORY_EMOJI  # noqa: E402
 from webapp.auth import validate_init_data  # noqa: E402
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "***REMOVED***")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 DEV_MODE = os.getenv("WEBAPP_DEV_MODE", "0").lower() in {"1", "true", "yes", "on"}
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 

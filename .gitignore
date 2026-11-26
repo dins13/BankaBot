@@ -18,3 +18,8 @@ finance.db-shm
 
 # ОС
 .DS_Store
+
+# Переменные окружения (токены и секреты)
+.env
+.env.*
+!.env.example
