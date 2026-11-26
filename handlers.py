@@ -1,10 +1,16 @@
 """Обработчики команд и сообщений бота."""
 
+import os
 from datetime import datetime, timedelta
 
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    WebAppInfo,
+)
 
 from database import add_operation, delete_operation, get_operation, upsert_user
 from services import (
@@ -23,6 +29,9 @@ from services import (
 )
 
 router = Router()
+
+# Публичный HTTPS-адрес Mini App (например, https://xxxx.ngrok-free.app).
+WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip()
 
 HELP_TEXT = (
     "Я запоминаю твои доходы и расходы 💰\n\n"
@@ -43,7 +52,8 @@ HELP_TEXT = (
     "• /categories — расходы по категориям за месяц\n"
     "• /period 2026-10-01 2026-10-12 — произвольный период\n"
     "• /balance — общий баланс\n"
-    "• /del 5 — удалить операцию №5"
+    "• /del 5 — удалить операцию №5\n"
+    "• /app — открыть мини-приложение"
 )
 
 
@@ -111,6 +121,28 @@ async def cmd_start(message: Message):
 @router.message(Command("help"))
 async def cmd_help(message: Message):
     await message.answer(HELP_TEXT, parse_mode="Markdown")
+
+
+@router.message(Command("app"))
+async def cmd_app(message: Message):
+    """Отправляет кнопку запуска Mini App (нужен публичный HTTPS-адрес)."""
+    if not WEBAPP_URL:
+        await message.answer(
+            "Мини-приложение не настроено.\n"
+            "Укажите переменную окружения WEBAPP_URL с публичным HTTPS-адресом."
+        )
+        return
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Открыть приложение 💰",
+                    web_app=WebAppInfo(url=WEBAPP_URL),
+                )
+            ]
+        ]
+    )
+    await message.answer("Открыть финансовое мини-приложение:", reply_markup=keyboard)
 
 
 # ---------------------------------------------------------------------------

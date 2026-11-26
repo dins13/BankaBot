@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101418">
+  <title>Финансы</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="balance-card">
+        <div class="balance-head">
+          <span class="balance-label">Общий баланс</span>
+          <span class="balance-user" id="userName"></span>
+        </div>
+        <div class="balance-value" id="balanceValue">—</div>
+        <div class="balance-row">
+          <span class="balance-pill income">↑ <b id="incomeValue">0 ₽</b></span>
+          <span class="balance-pill expense">↓ <b id="expenseValue">0 ₽</b></span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Добавление операции -->
+      <section id="tab-add" class="tab-panel active">
+        <form id="opForm" class="card" autocomplete="off">
+          <div class="segmented" id="typeSwitch">
+            <button type="button" data-type="expense" class="active">Расход</button>
+            <button type="button" data-type="income">Доход</button>
+          </div>
+
+          <label class="field amount-field">
+            <span>Сумма</span>
+            <div class="amount-input">
+              <input id="amountInput" type="text" inputmode="decimal" placeholder="0" required>
+              <span class="currency">₽</span>
+            </div>
+          </label>
+
+          <div class="field">
+            <span>Категория</span>
+            <div id="categoryChips" class="chips"></div>
+            <input id="customCategory" type="text" placeholder="Или своя категория" maxlength="64">
+          </div>
+
+          <label class="field">
+            <span>Комментарий</span>
+            <input id="commentInput" type="text" placeholder="Необязательно" maxlength="300">
+          </label>
+
+          <label class="field">
+            <span>Дата</span>
+            <input id="dateInput" type="date">
+          </label>
+
+          <button class="primary" type="submit" id="submitBtn">Сохранить</button>
+          <p class="form-hint" id="formHint"></p>
+        </form>
+      </section>
+
+      <!-- История операций -->
+      <section id="tab-history" class="tab-panel">
+        <div class="card filters">
+          <div class="filter-row">
+            <label class="mini-field">
+              <span>Период</span>
+              <select id="historyPeriod">
+                <option value="today">Сегодня</option>
+                <option value="week">Неделя</option>
+                <option value="month" selected>Месяц</option>
+                <option value="year">Год</option>
+                <option value="all">Всё время</option>
+                <option value="custom">Свой период</option>
+              </select>
+            </label>
+            <label class="mini-field">
+              <span>Тип</span>
+              <select id="historyType">
+                <option value="all">Все</option>
+                <option value="expense">Расходы</option>
+                <option value="income">Доходы</option>
+              </select>
+            </label>
+          </div>
+          <div class="filter-row">
+            <label class="mini-field">
+              <span>Категория</span>
+              <select id="historyCategory">
+                <option value="">Все категории</option>
+              </select>
+            </label>
+          </div>
+          <div id="historyCustom" class="range hidden">
+            <input type="date" id="historyStart">
+            <span>—</span>
+            <input type="date" id="historyEnd">
+          </div>
+        </div>
+
+        <div class="card summary-card" id="historySummary"></div>
+        <ul class="op-list" id="historyList"></ul>
+      </section>
+
+      <!-- Аналитика -->
+      <section id="tab-analytics" class="tab-panel">
+        <div class="card filters">
+          <div class="filter-row">
+            <label class="mini-field">
+              <span>Период</span>
+              <select id="analyticsPeriod">
+                <option value="week">Неделя</option>
+                <option value="month" selected>Месяц</option>
+                <option value="year">Год</option>
+                <option value="all">Всё время</option>
+                <option value="custom">Свой период</option>
+              </select>
+            </label>
+          </div>
+          <div id="analyticsCustom" class="range hidden">
+            <input type="date" id="analyticsStart">
+            <span>—</span>
+            <input type="date" id="analyticsEnd">
+          </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Распределение по категориям</h3>
+            <div class="segmented tiny" id="catTypeSwitch">
+              <button type="button" data-cat-type="expense" class="active">Расходы</button>
+              <button type="button" data-cat-type="income">Доходы</button>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+          <ul class="legend" id="categoryLegend"></ul>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Динамика</h3>
+            <div class="segmented tiny" id="bucketSwitch">
+              <button type="button" data-bucket="auto" class="active">Авто</button>
+              <button type="button" data-bucket="day">Дни</button>
+              <button type="button" data-bucket="week">Недели</button>
+              <button type="button" data-bucket="month">Месяцы</button>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+        </div>
+
+        <div class="card">
+          <h3>Топ категорий расходов</h3>
+          <ul class="bars" id="topCategories"></ul>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tabbar">
+      <button type="button" class="tab active" data-tab="add">
+        <span class="tab-icon">＋</span><span>Добавить</span>
+      </button>
+      <button type="button" class="tab" data-tab="history">
+        <span class="tab-icon">☰</span><span>История</span>
+      </button>
+      <button type="button" class="tab" data-tab="analytics">
+        <span class="tab-icon">◔</span><span>Аналитика</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -144,7 +144,9 @@ async def get_operations(
     start: str | None = None,
     end: str | None = None,
     op_type: str | None = None,
+    category: str | None = None,
     limit: int | None = None,
+    offset: int | None = None,
 ) -> list[sqlite3.Row]:
     """Операции пользователя за период (start <= created_at < end), новые сверху."""
     query = "SELECT * FROM operations WHERE user_id = ?"
@@ -158,9 +160,14 @@ async def get_operations(
     if op_type is not None:
         query += " AND type = ?"
         params.append(op_type)
+    if category is not None:
+        query += " AND category = ?"
+        params.append(category)
     query += " ORDER BY created_at DESC, id DESC"
     if limit is not None:
         query += f" LIMIT {int(limit)}"
+    if offset is not None:
+        query += f" OFFSET {int(offset)}"
     return await fetchall(query, params)
 
 
@@ -207,3 +214,21 @@ async def get_category_totals(
         params.append(end)
     query += " GROUP BY category ORDER BY total DESC"
     return await fetchall(query, params)
+
+
+async def get_categories(user_id: int) -> list[sqlite3.Row]:
+    """Все категории пользователя (по типам) с количеством и суммой операций.
+
+    Используется Mini App для выбора «существующих» категорий и фильтров.
+    """
+    return await fetchall(
+        """
+        SELECT type, category, COUNT(*) AS cnt, SUM(amount) AS total,
+               MAX(created_at) AS last_used
+        FROM operations
+        WHERE user_id = ?
+        GROUP BY type, category
+        ORDER BY cnt DESC, category ASC
+        """,
+        (user_id,),
+    )
